@@ -4,7 +4,7 @@ use mysql::prelude::Queryable;
 use serde::{Deserialize, Serialize};
 
 #[derive(Debug, Display, Error, From)]
-pub enum PetsDbError {
+pub(crate) enum PetsDbError {
     MysqlError(mysql::Error),
     Unknown,
 }
@@ -18,27 +18,27 @@ impl actix_web::ResponseError for PetsDbError {
 }
 
 #[derive(Debug, Serialize, Deserialize)]
-pub struct Owner {
-    pub id: i32,
-    pub name: String,
-    pub pets: Vec<Pets>,
+pub(crate) struct Owner {
+    pub(crate) id: i32,
+    pub(crate) name: String,
+    pub(crate) pets: Vec<Pets>,
 }
 
 #[derive(Debug, Serialize, Deserialize)]
-pub struct Pets {
-    pub id: i32,
-    pub name: String,
-    pub pet_type: PetType,
+pub(crate) struct Pets {
+    pub(crate) id: i32,
+    pub(crate) name: String,
+    pub(crate) pet_type: PetType,
 }
 
 #[derive(Debug, Serialize, Deserialize)]
-pub struct PetType {
-    pub id: i32,
-    pub name: String,
+pub(crate) struct PetType {
+    pub(crate) id: i32,
+    pub(crate) name: String,
 }
 
 impl Owner {
-    pub fn all(conn: &mut mysql::PooledConn) -> mysql::error::Result<Vec<Owner>> {
+    pub(crate) fn all(conn: &mut mysql::PooledConn) -> mysql::error::Result<Vec<Owner>> {
         let result: Vec<mysql::Row> = conn.query(OWNER_QUERY)?;
         Ok(Self::parse_result(result))
     }

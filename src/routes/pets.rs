@@ -13,7 +13,7 @@ pub(crate) async fn owners(data: web::Data<mysql::Pool>) -> actix_web::Result<im
     Ok(web::Json(series))
 }
 
-pub fn get_owners(pool: &mysql::Pool) -> Result<Vec<Owner>, PetsDbError> {
+fn get_owners(pool: &mysql::Pool) -> Result<Vec<Owner>, PetsDbError> {
     let mut conn = pool.get_conn()?;
 
     Ok(Owner::all(&mut conn)?)

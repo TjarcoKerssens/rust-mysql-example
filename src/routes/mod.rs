@@ -1,3 +1,3 @@
 pub mod pets;
 
-pub use pets::*;
+pub(crate) use pets::*;
