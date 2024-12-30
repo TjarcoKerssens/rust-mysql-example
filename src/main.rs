@@ -48,6 +48,7 @@ async fn main() -> std::io::Result<()> {
             .app_data(shared_data.clone())
             .service(routes::index)
             .service(routes::owners)
+            .service(routes::owner_find)
     })
     .bind(("127.0.0.1", 8080))?
     .workers(2)
