@@ -46,27 +46,29 @@ impl Owner {
     fn parse_result(result: Vec<mysql::Row>) -> Vec<Owner> {
         result
             .chunk_by(|r1, r2| r1.get::<i32, &str>("owner_id") == r2.get("owner_id"))
-            .map(Self::parse_owner)
+            .filter_map(Self::parse_owner)
             .collect()
     }
 
-    fn parse_owner(grouped_rows: &[mysql::Row]) -> Owner {
+    fn parse_owner(grouped_rows: &[mysql::Row]) -> Option<Owner> {
         let first_row = &grouped_rows[0];
-        Owner {
-            id: first_row.get("owner_id").unwrap(),
-            name: first_row.get("owner_name").unwrap(),
+        Some(Owner {
+            id: first_row.get("owner_id")?,
+            name: first_row.get("owner_name")?,
             pets: grouped_rows
                 .iter()
-                .map(|val| Pets {
-                    id: val.get("pet_id").unwrap(),
-                    name: val.get("pet_name").unwrap(),
-                    pet_type: PetType {
-                        id: 0,
-                        name: val.get("pet_type").unwrap(),
-                    },
+                .filter_map(|val| {
+                    Some(Pets {
+                        id: val.get("pet_id")?,
+                        name: val.get("pet_name")?,
+                        pet_type: PetType {
+                            id: 0,
+                            name: val.get("pet_type")?,
+                        },
+                    })
                 })
                 .collect(),
-        }
+        })
     }
 }
 
