@@ -46,7 +46,6 @@ impl Owner {
     fn parse_result(result: Vec<mysql::Row>) -> Vec<Owner> {
         result
             .chunk_by(|r1, r2| r1.get::<i32, &str>("owner_id") == r2.get("owner_id"))
-            .into_iter()
             .map(Self::parse_owner)
             .collect()
     }
@@ -80,4 +79,5 @@ const OWNER_QUERY: &str = "SELECT
 FROM
     owners owner
     JOIN pets pet ON owner.id = pet.owner_id
-    JOIN pet_types pet_type ON pet.type_id = pet_type.id;";
+    JOIN pet_types pet_type ON pet.type_id = pet_type.id
+ORDER BY owner_id";
