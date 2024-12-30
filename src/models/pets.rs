@@ -1,6 +1,5 @@
 use actix_web::http::StatusCode;
 use derive_more::{Display, Error, From};
-use itertools::Itertools;
 use mysql::prelude::Queryable;
 use serde::{Deserialize, Serialize};
 
@@ -38,61 +37,37 @@ pub struct PetType {
     pub name: String,
 }
 
-// Result row of a query to to the owners table
-struct OwnerResult {
-    pub owner_id: i32,
-    pub owner_name: String,
-    pub pet_id: i32,
-    pub pet_name: String,
-    pub pet_type: String,
-}
-
-impl OwnerResult {
-    fn from_row(row: mysql::Row) -> OwnerResult {
-        let (owner_id, owner_name, pet_id, pet_name, pet_type) = mysql::from_row(row);
-        OwnerResult {
-            owner_id,
-            owner_name,
-            pet_id,
-            pet_name,
-            pet_type,
-        }
-    }
-}
-
 impl Owner {
     pub fn all(conn: &mut mysql::PooledConn) -> mysql::error::Result<Vec<Owner>> {
-        let result = conn.query_map(OWNER_QUERY, |row| OwnerResult::from_row(row));
-
-        match result {
-            Ok(result) => Ok(Owner::from_result(result)),
-            Err(err) => Err(err),
-        }
+        let result: Vec<mysql::Row> = conn.query(OWNER_QUERY)?;
+        Ok(Self::parse_result(result))
     }
 
-    fn from_result(result: Vec<OwnerResult>) -> Vec<Owner> {
-        let mut owners = Vec::new();
+    fn parse_result(result: Vec<mysql::Row>) -> Vec<Owner> {
+        result
+            .chunk_by(|r1, r2| r1.get::<i32, &str>("owner_id") == r2.get("owner_id"))
+            .into_iter()
+            .map(Self::parse_owner)
+            .collect()
+    }
 
-        for (key, chunk) in &result.into_iter().chunk_by(|res| res.owner_id) {
-            let values: Vec<OwnerResult> = chunk.collect();
-            owners.push(Owner {
-                id: key,
-                name: values[0].owner_name.clone(),
-                pets: values
-                    .into_iter()
-                    .map(|val| Pets {
-                        id: val.pet_id,
-                        name: val.pet_name,
-                        pet_type: PetType {
-                            id: 0,
-                            name: val.pet_type,
-                        },
-                    })
-                    .collect(),
-            });
+    fn parse_owner(grouped_rows: &[mysql::Row]) -> Owner {
+        let first_row = &grouped_rows[0];
+        Owner {
+            id: first_row.get("owner_id").unwrap(),
+            name: first_row.get("owner_name").unwrap(),
+            pets: grouped_rows
+                .iter()
+                .map(|val| Pets {
+                    id: val.get("pet_id").unwrap(),
+                    name: val.get("pet_name").unwrap(),
+                    pet_type: PetType {
+                        id: 0,
+                        name: val.get("pet_type").unwrap(),
+                    },
+                })
+                .collect(),
         }
-
-        owners
     }
 }
 

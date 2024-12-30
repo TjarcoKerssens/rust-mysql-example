@@ -641,20 +641,6 @@ dependencies = [
 ]
 
 [[package]]
-name = "dataseries_server"
-version = "0.1.0"
-dependencies = [
- "actix-web",
- "derive_more",
- "dotenvy",
- "itertools",
- "log",
- "mysql",
- "serde",
- "serde_json",
-]
-
-[[package]]
 name = "deranged"
 version = "0.3.11"
 source = "registry+https://github.com/rust-lang/crates.io-index"
@@ -1888,6 +1874,20 @@ dependencies = [
  "num-traits",
  "rand",
  "rkyv",
+ "serde",
+ "serde_json",
+]
+
+[[package]]
+name = "rust_mysql_template"
+version = "0.1.0"
+dependencies = [
+ "actix-web",
+ "derive_more",
+ "dotenvy",
+ "itertools",
+ "log",
+ "mysql",
  "serde",
  "serde_json",
 ]
